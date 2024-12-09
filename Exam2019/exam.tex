@@ -235,4 +235,29 @@ Angiv et regulær udtryk der beskriver mængden af strenge over alfabete $\left\
     \rho\vdash\text{\Verb|let x = 23 in x within [2+3, 40] end|}:\text{\Verb|bool|}
   }
 \end{mathpar}
+\section{Opgave 3}
+\subsection{}
+Givet følgende kode
+\begin{figure}[!ht]\label{fig:exVarEnv}
+\begin{verbatim}
+let exVarEnv : varEnv = 
+  ([
+    ("a", (Locvar 6, TypA(TypI, Some 2)));
+    ("pn", (Locvar 3, TypA(TypP TypI, Some 1)));
+    ("p", (Locvar 1, TypP TypI));
+    ("n", (Locvar 0, TypI));
+    ("g", (Glovar 0, TypI))
+  ], 7)
+\end{verbatim} 
+  \caption{}
+\end{figure}\\
+Kan vi se at værdien 7 angiver stak dybden. 
+\begin{itemize}
+  \item a - har et lokalt offset på $6$ med typen array af ints som er på to elementer, da der også skal være plads til en header bliver dette til $3$ elementer der bliver allokeret til.
+  \item pn - har et lokalt offset på $3$ med typen array af pointers til ins på længden 1, igen på grund af header skal der allokeres til $2$ elementer.
+  \item p - har et lokalt offset på $1$ med typen pointer til int og dertil skal kun allokeret ét element.
+  \item n - har et lokalt offset på $0$ med typen int, og skal kun have allokeret ét element.
+  \item g - har en absolut adresse på $0$ med typen int.
+\end{itemize}
+Dette vil altså sige at den næste variabel der skal allokeres til skal starte på position $7$.
 \end{document}
