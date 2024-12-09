@@ -6,5 +6,6 @@ dotnet fsi -r ./../FsLexYacc.Runtime.dll \
     Comp.fs \
     CPar.fs \
     CLex.fs \
-    Parse.fs 
+    Parse.fs \
+    ParseAndComp.fs
 

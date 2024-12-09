@@ -67,7 +67,11 @@ let ppVarTyp (name, (var, typ)) =
   $"%s{name}:%s{ppTyp typ} at %s{ppVar var}"
 
 let ppVarEnv (env: varEnv) = 
-  env |> fst |> List.map ppVarTyp
+  env |> fst |> List.map ppVarTyp |> List.rev
+
+let printVarEnv varEnv = 
+  List.iter (printf "\n%s") (ppVarEnv varEnv)
+  printf "\n"
 
 let exVarEnv : varEnv = 
   ([
@@ -153,7 +157,9 @@ let rec cStmt stmt (varEnv : varEnv) (funEnv : funEnv) : instr list =
     | Block stmts -> 
       let rec loop stmts varEnv =
           match stmts with 
-          | []     -> (snd varEnv, [])
+          | []     -> 
+            printVarEnv varEnv
+            (snd varEnv, [])
           | s1::sr -> 
             let (varEnv1, code1) = cStmtOrDec s1 varEnv funEnv
             let (fdepthr, coder) = loop sr varEnv1 
