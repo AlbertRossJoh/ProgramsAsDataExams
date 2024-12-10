@@ -14,11 +14,12 @@
 
 module HigherFun
 
+//#load "Absyn.fs"
 open Absyn
 
 (* Environment operations *)
 
-type 'v env = (string * 'v) list
+type 'v env = (string * 'v) list;;
 
 let rec lookup env x =
     match env with 
@@ -30,6 +31,7 @@ let rec lookup env x =
 type value = 
   | Int of int
   | Closure of string * string * expr * value env       (* (f, x, fBody, fDeclEnv) *)
+  | RecordV of (string * value) list;;
 
 let rec eval (e : expr) (env : value env) : value =
     match e with
@@ -69,7 +71,31 @@ let rec eval (e : expr) (env : value env) : value =
     | Print(ex) -> 
       let evaluated = eval ex env
       printfn "%A" evaluated
-      evaluated;;
+      evaluated
+    | Field(Var x, field) -> 
+      let record = eval (Var x) env
+      match record with
+      | RecordV(fields) ->                                            // We should only be able to access fields on record types
+        let res = 
+          fields 
+          |> List.tryFind (fun (f,_) -> f = field)                    // We just take the first field we find
+          |> Option.map snd
+        match res with
+        | Some v -> v
+        | _ -> failwith $"field %s{field} not found for record %s{x}"
+      | e -> failwith $"expected typeof %A{RecordV([])} but got %A{e}"
+    | Field(x, _) -> failwith $"the type %A{x} does not contain fields"
+    | Record(fields) -> 
+      let originalLength = List.length fields
+      let lengthAfterDuplicateRemoval = 
+        fields 
+        |> List.map fst 
+        |> List.distinct 
+        |> List.length
+      if originalLength <> lengthAfterDuplicateRemoval then failwith "a record should not contain duplicate values"
+      fields 
+      |> List.map (fun (name, exp) -> name, (eval exp env))
+      |> RecordV;;
 
 (* Evaluate in empty environment: program must have no free variables: *)
 
@@ -78,7 +104,7 @@ let run e = eval e [];;
 (* Examples in abstract syntax *)
 
 let ex1 = Letfun("f1", "x", Prim("+", Var "x", CstI 1), 
-                 Call(Var "f1", CstI 12));
+                 Call(Var "f1", CstI 12));;
 
 (* Factorial *)
 
@@ -88,7 +114,7 @@ let ex2 = Letfun("fac", "x",
                     Prim("*", Var "x", 
                               Call(Var "fac", 
                                    Prim("-", Var "x", CstI 1)))),
-                 Call(Var "fac", Var "n"));
+                 Call(Var "fac", Var "n"));;
 
 (* let fac10 = eval ex2 [("n", Int 10)];; *)
 
@@ -111,20 +137,20 @@ let ex4 =
 (*open HigherFun*)
 let add1 = Letfun("add1", "x",
                   Prim("+", Var "x", CstI 1),
-                  Var "add1")
-let add1C = eval add1 []
-let add1with2 = eval (Call(Var "add1C", CstI 2)) [("add1C",add1C)]
+                  Var "add1");;
+let add1C = eval add1 [];;
+let add1with2 = eval (Call(Var "add1C", CstI 2)) [("add1C",add1C)];;
 
 (* let tw g = let app y = g (g y) in app end in tw end *)
 let tw = 
   Letfun("tw", "g", 
     Letfun("app", "y", Call(Var "g", Call(Var "g", Var "y")), Var "app"),
-    Var "tw")
-let twC = eval tw []
+    Var "tw");;
+let twC = eval tw [];;
 
 
-let twAdd1C = eval (Call(Var "tw", Var "add1")) [("tw",twC);("add1",add1C)]
-let res = eval (Call(Var "twAdd1C", CstI 1)) [("twAdd1C",twAdd1C)]
+let twAdd1C = eval (Call(Var "tw", Var "add1")) [("tw",twC);("add1",add1C)];;
+let res = eval (Call(Var "twAdd1C", CstI 1)) [("twAdd1C",twAdd1C)];;
 
 (* We are not restricting environment to only contain free variables
    when we build the closure for a function. This make the closure for
@@ -135,5 +161,5 @@ let res = eval (Call(Var "twAdd1C", CstI 1)) [("twAdd1C",twAdd1C)]
 let twAdd1C2 =
   Closure
     ("app", "y", Call (Var "g", Call (Var "g", Var "y")),
-     [("g", Closure ("add1", "x", Prim ("+", Var "x", CstI 1), []))])
-let res2 = eval (Call(Var "twAdd1C2", CstI 1)) [("twAdd1C2",twAdd1C2)]
+     [("g", Closure ("add1", "x", Prim ("+", Var "x", CstI 1), []))]);;
+let res2 = eval (Call(Var "twAdd1C2", CstI 1)) [("twAdd1C2",twAdd1C2)];;

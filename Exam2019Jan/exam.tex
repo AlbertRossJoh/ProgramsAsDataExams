@@ -48,6 +48,31 @@
 \rhead{Programmer som data}
 \rfoot{Page \thepage}
 \newpage
-\section{}
-
+\begin{landscape}
+\section{Opgave 3}
+\begin{mathpar}
+  \inferrule*[left=$e_6$]{
+    \inferrule*[left=$e_{10}$]{
+      \inferrule*[left=$e_1$]{ }{
+        \rho\vdash32\Rightarrow32
+      }
+    }{
+      \rho\vdash\{\text{field1}=32\}\Rightarrow\{\left(\text{field1};32\right)\}
+    }
+    \inferrule*[right=$e_{11}$]{
+      \inferrule*[left=$e_{10}$]{ 
+        \inferrule*[left=$e_1$]{ }{
+          \rho\vdash32\Rightarrow32
+        }
+      }{
+        \rho\vdash\{\text{field1}=32\}\Rightarrow\{\left(\text{field1};32\right)\}
+      }
+    }{
+      \rho\left[x\mapsto\{\left(\text{field1};32\right)\}\right]\vdash\text{\Verb|x.field1|}\Rightarrow32
+    }
+  }{
+    \left[\right]\vdash\text{\Verb|let x= \{field1=32\} in x.field1 end|}\Rightarrow32
+  }
+\end{mathpar}
+\end{landscape}
 \end{document}
