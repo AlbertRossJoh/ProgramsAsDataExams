@@ -165,6 +165,7 @@ let rec emitints getlab instr ints =
     | PRINTCURFRM env -> 
       let codeString (s: string) = s.Length :: [for c in s -> (int) c]
       let codeVar (i, s) c = i :: (codeString s @ c)
+      
 
 
 (* Convert instruction list to int list in two passes:
