@@ -62,11 +62,11 @@
     }
     \inferrule*[right=$e_{11}$]{
       \inferrule*[left=$e_{10}$]{ 
-        \inferrule*[left=$e_1$]{ }{
-          \rho\vdash32\Rightarrow32
+        \inferrule*[left=$e_3$]{ }{
+          \rho\left(x\right)=\{\left(\text{field1};32\right)\}
         }
       }{
-        \rho\vdash\{\text{field1}=32\}\Rightarrow\{\left(\text{field1};32\right)\}
+        \rho\vdash x\Rightarrow\{\left(\text{field1};32\right)\}
       }
     }{
       \rho\left[x\mapsto\{\left(\text{field1};32\right)\}\right]\vdash\text{\Verb|x.field1|}\Rightarrow32
