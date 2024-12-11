@@ -170,7 +170,7 @@ let makeGlobalEnvs(topdecs : topdec list) : varEnv * funEnv * instr list =
             let (varEnvr, funEnvr, coder) = addv decr varEnv1 funEnv
             (varEnvr, funEnvr, code1 @ coder)
           | Fundec (tyOpt, f, xs, body) ->
-            addv decr varEnv ((f, (newLabel(), tyOpt, xs)) :: funEnv)
+            addv decr varEnv ((f, (f, tyOpt, xs)) :: funEnv)
     addv topdecs ([], 0) []
     
 (* ------------------------------------------------------------------- *)
