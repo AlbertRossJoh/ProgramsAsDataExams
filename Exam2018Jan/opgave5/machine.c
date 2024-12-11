@@ -95,7 +95,7 @@ void prettyPrintInstruction(int instr) {
 void printByteCodeStatistics(){
   for (int i = 0; i< AMOUNT_INSTR; i++){
     prettyPrintInstruction(i);
-    printf(" : %d", byteCodeStatistics[i]);
+    printf(" : %d\n", byteCodeStatistics[i]);
   }
 }
 
