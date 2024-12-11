@@ -4,5 +4,6 @@
 *.fls
 *.log
 *.gz
+*.out
 bin/
 obj/

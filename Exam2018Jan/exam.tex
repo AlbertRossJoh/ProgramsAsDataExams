@@ -171,4 +171,51 @@ Hvilket producerer følgende udtryk.
   \text{\Verb|ab*a(ba)*|}
 \end{align*}
 Her er det indlysende at se at at det er det samme udtryk men skrevet på en anden måde, der er som udgangspunkt ikke nogen forskel mellem \Verb|a(ba)*| og \Verb|(ab)*a|.
+\section{Opgave 4}
+\subsection{Opgave 4.1}
+\begin{verbatim}
+[
+-------------main-----------
+  -999  old bp
+  3     i
+--------------f-------------
+  24    ret addr PRINTI
+  1     old bp
+  3     arg
+  42    i
+]
+\end{verbatim}
+\subsection{Opgave 4.2}
+\begin{Verbatim}[numbers=left]
+  LDARGS;           Load args
+  CALL (0, "main"); Call Main with 0 args
+  STOP;             Return from Main and end program
+Label "main";       Label for Main                          [-999]
+  INCSP 1;          Increase stackpointer(sp) with 1 sp = 1 [-999 0]
+  GETBP;            Get base pointer bp = 1                 [-999 0 1]
+  CSTI 3;           Put 3 on the stack                      [-999 0 1 3]
+  STI;              Store indirect                          [-999 3 3]
+  INCSP -1;         Decrease sp with 1                      [-999 3]
+  GETBP;            Get bp = 1                              [-999 3 1]
+  LDI;              Load indirect                           [-999 3 3]
+  CALL (1, "f");    Call function f with 1 argument         [-999 3 13 1 3]
+  PRINTI;           Print integer on top of stack           [-999 3 45]
+  RET 1;            Return and remove vals                  [ ]
+Label "f";          Label for function f
+  INCSP 1;          Increase sp with 1 sp = 5               [-999 3 13 1 3 0]
+  GETBP;            Get bp = 4                              [-999 3 13 1 3 0 5]
+  CSTI 1;           Push 1 on the stack                     [-999 3 13 1 3 0 5 1]
+  ADD;              Add 1 and 4                             [-999 3 13 1 3 0 6]
+  CSTI 42;          Push 42 on the stack                    [-999 3 13 1 3 0 6 42]
+  STI;              Store indirect                          [-999 3 13 1 3 42 42]
+  INCSP -1;         Decrease sp by 1 sp = 5                 [-999 3 13 1 3 42]
+  GETBP;            Get bp = 4                              [-999 3 13 1 3 42 4]
+  LDI;              Load indirect, gets argument n          [-999 3 13 1 3 42 3]
+  GETBP;            Get bp = 4                              [-999 3 13 1 3 42 3 4]
+  CSTI 1;           Push 1 on the stack                     [-999 3 13 1 3 42 3 4 1]
+  ADD;              Add 4 and 1                             [-999 3 13 1 3 42 3 5]
+  LDI;              Load indirect, gets i                   [-999 3 13 1 3 42 3 42]
+  ADD;              Add 42 and 3                            [-999 3 13 1 3 42 45]
+  RET 2             Return to instruction 13 and remove args[-999 3 45]
+\end{Verbatim}
 \end{document}
