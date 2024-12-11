@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Util.fs" />
+    <Compile Include="Absyn.fs" />
+    <Compile Include="FunPar.fs" />
+    <Compile Include="FunLex.fs" />
+    <Compile Include="Parse.fs" />
+    <Compile Include="HigherFun.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="/Users/nh/fsharp/FsLexYacc.Runtime.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FsLexYacc.Runtime" Version="11.3.0" />
+  </ItemGroup>
+</Project>
