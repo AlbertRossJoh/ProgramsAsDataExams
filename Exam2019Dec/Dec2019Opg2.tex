@@ -1,0 +1,31 @@
+\begin{mathpar}
+  \inferrule*[right=$p_6$]{
+      \inferrule*[left=$p_1$]{ }{
+        \rho\vdash 21 : \text{\Verb|int|}
+      }
+      \inferrule*[right=$inCheck$]{ 
+        \inferrule*[left=$p_3$]{ 
+          \rho\left(\text{\Verb|x|}\right) = \forall\alpha.\alpha\to\text{\Verb|int|}
+        }{
+          \rho\vdash\text{\Verb|x|}: \text{\Verb|int|}
+        }
+        \inferrule*[left=$p_4$]{ 
+          \inferrule*[left=$p_1$]{ }{
+            \rho\vdash 2 : \text{\Verb|int|}
+          }
+          \inferrule*[right=$p_1$]{ }{
+            \rho\vdash 3 : \text{\Verb|int|}
+          }
+        }{
+          \rho\vdash\text{\Verb|2+3|}: \text{\Verb|int|}
+        }
+        \inferrule*[right=$p_1$]{ }{
+            \rho\vdash 40 : \text{\Verb|int|}
+        }
+      }{
+        \rho\left[f\to\forall\alpha_1\dots\alpha_n.t_x\to t_r\right]\vdash \text{\Verb|x within [2+3, 40]|}:\text{\Verb|bool|}
+      }
+  }{
+    \rho\vdash\text{\Verb|let x = 23 in x within [2+3, 40] end|}:\text{\Verb|bool|}
+  }
+\end{mathpar}

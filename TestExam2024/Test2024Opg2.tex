@@ -1,0 +1,29 @@
+\begin{verbatim}
+let exam2_1 = Every(Write(FromTo(1, 6)));
+
+let exam2_2 = Every(
+  Write(
+    Prim("+", 
+      Prim("*", CstI 10, FromTo(3, 6)),
+      FromTo(3,4)
+    )
+  )
+)
+
+let exam2_3 = Every(Write(FromToBy(1, 10, 3)))
+
+let exam2_4 = Every(
+  Write(
+    Prim("+", 
+      FromToBy(30, 60, 10),
+      FromTo(3,4)
+    )
+  )
+)
+
+let exam2_5 = Every(
+  Write(
+      FromToBy(10, 11, 0)
+  )
+)
+\end{verbatim}

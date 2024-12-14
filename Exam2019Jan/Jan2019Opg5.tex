@@ -1,0 +1,19 @@
+\subsubsection{Opgave 5.1}
+På toppen af stakken bliver der allokeret 5 elementer til \Verb|a| 
+\begin{verbatim}
+[ 
+---------------main---------------
+  4               ret addr
+  -999            old bp
+  42 42 42 42 42  a[0]-a[4]
+  2               ref a
+  5               i
+------------printArray------------
+  125             ret addr
+  2               old bp
+  2               arg a
+  0               i
+]
+\end{verbatim}
+\subsubsection{Opgave 5.2}
+Der er en bug i den måde vi håndtere halekald. Da printarray bliver til den sidste funktion kaldt af main så fjerner den alle de lokale variable oprettet af main. Hvilket gør at printarray læser ''tilfældige'' værdier fra stakken alt efter hvad der ligger på toppen af stakken når der bliver lavet \Verb|LDI| kald.

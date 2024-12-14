@@ -1,0 +1,37 @@
+\subsubsection{Tegn evalueringstræ}
+\begin{mathpar}
+\inferrule*[left=$e_{10}$]{ 
+  \inferrule*[left=$e_6$]{ 
+    \inferrule*[left=$e_4$]{ 
+      \inferrule*[left=$e_1$]{ }{
+        \rho\vdash1\Rightarrow1
+      }
+      \inferrule*[right=$e_{11}$]{ 
+        \rho'\left(\vb{Weekend}\right) = \vb{Enum}\{\vb{Sat}_0, \vb{Sun}_1\}\: \vb{Sun}=\vb{Sun}_i\: i=1
+      }{
+        \rho\vdash\vb{Weekend.Sun}\Rightarrow1
+      }
+      v = 1+1
+    }{
+      \rho\vdash\vb{1 + Weekend.Sun}\Rightarrow2
+    }
+    \inferrule*[right=$e_4$]{ 
+      \inferrule*[left=$e_3$]{ 
+        \rho\left(r\right)\Rightarrow 2
+      }{
+          \rho\vdash r\Rightarrow2
+      }
+      \inferrule*[right=$e_1$]{ }{
+        \rho\vdash1\Rightarrow1
+      }
+      v=2+1
+    }{
+      \rho\left[r\mapsto2\right]\vdash r+1\Rightarrow3
+    }
+  }{
+    \rho'=\rho\left[\vb{Weekend}\rightarrow\vb{Enum}\{\vb{Sat}_0, \vb{Sun}_1\}\right]\vdash\vb{let r = 1 + Weekend.Sun in r + 1 end}
+  }
+}{
+  \left[\right]\vdash\vb{enum Weekend=Sat | Sun in let r = 1 + Weekend.Sun in r + 1 end end}\Rightarrow3
+}
+\end{mathpar}

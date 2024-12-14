@@ -1,0 +1,94 @@
+Betragt dette regulære udtryk over alfabetet $\{d, ','\}$, hvor $d$ står for decimalt ciffer og ',' er komma:
+\begin{align}
+    d+','?d*
+\end{align}
+Ved antagelse af, at $d$ svarer til tallene fra 0 til 9 og ',' er et komma, så beskriver det regulære udtryk kommatal.
+\subsubsection{}
+Udtrykket kan beskrive tal i sættet $\mathbb{R}^+_0$, dette vil altså sige vilkårligt store reelle tal.\\
+Følgende eksempler er inkluderet i sættet:
+\begin{itemize}
+    \item $0$
+    \item $1,1$
+    \item $9,999999999$
+    \item $20$
+    \item $123456,0$
+    \item $2,$
+\end{itemize}
+\subsubsection{}
+\begin{figure}[!ht]\label{fig:examfig}
+    \centering
+    \begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
+       \node[state, initial] (q_0)   {$1$}; 
+        \node[state] (q_1) [ right =of q_0] {$2$};
+        \node[state] (q_2) [above =of q_1] {$3$};
+        \node[state] (q_3) [right =of q_1] {$4$};
+        \node[state] (q_4) [right =of q_3] {$5$};
+        \node[state] (q_5) [right =of q_4] {$6$};
+        \node[state, accepting] (q_6) [below =of q_4] {$7$};
+              
+        \path[->] 
+        (q_0) edge  node {$d$} (q_1)
+        (q_1) edge [bend left] node {$\epsilon$} (q_2)
+        (q_2) edge [bend left] node {$d$} (q_1)
+        (q_1) edge node {$\epsilon$} (q_3)
+        (q_3) edge [bend left] node {','} (q_4)
+        (q_3) edge [bend right] node {$\epsilon$} (q_4)
+        (q_4) edge node {$\epsilon$} (q_6)
+        (q_4) edge [bend left] node {$\epsilon$} (q_5)
+        (q_5) edge [bend left] node {$d$} (q_4)
+        ;
+    \end{tikzpicture}
+    \caption{The labeled NFA representing $d+$}
+\end{figure}
+\subsubsection{Vil tilstandsmaskinen acceptere netop de strenge, som genkendes af det regulære udtryk ovenfor}
+Ja man kan dele det regulære udtryk op i diskrete dele. Dette kan vi sammenligne med tilstandsmaskinen angivet nedenfor.\\
+\begin{figure}[!ht]\label{fig:dplus}
+    \centering
+    \begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
+       \node[state, initial] (q_0)   {$1$}; 
+        \node[state, accepting] (q_1) [ right =of q_0] {$2$};
+        \node[state] (q_2) [above =of q_1] {$3$};
+              
+        \path[->] 
+        (q_0) edge  node {$d$} (q_1)
+        (q_1) edge [bend left] node {$\epsilon$} (q_2)
+        (q_2) edge [bend left] node {$d$} (q_1)
+        ;
+    \end{tikzpicture}
+    \caption{The labeled NFA representing $d+$}
+\end{figure}
+\begin{figure}[!ht]\label{fig:comma}
+    \centering
+    \begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
+       \node[state, initial] (q_0)   {$1$}; 
+        \node[state, accepting] (q_1) [ right =of q_0] {$2$};
+              
+        \path[->] 
+        (q_0) edge [bend right] node {','} (q_1)
+        (q_0) edge [bend left] node {$\epsilon$} (q_1)
+        ;
+    \end{tikzpicture}
+    \caption{The labeled NFA representing $','?$}
+\end{figure}
+\begin{figure}[!ht]\label{fig:dopt}
+    \centering
+    \begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
+       \node[state, initial] (q_0)   {$1$}; 
+        \node[state, accepting] (q_1) [ right =of q_0] {$2$};
+              
+        \path[->] 
+        (q_1) edge [bend left] node {$d$} (q_0)
+        (q_0) edge [bend left] node {$\epsilon$} (q_1)
+        ;
+    \end{tikzpicture}
+    \caption{The labeled NFA representing $d*$}
+\end{figure}
+Det er åbenlyst at se at disse alle er dele af den tilstandsmaskine angivet.\\\\
+Tilstandsmaskinen angivet er ikke deterministisk da man kan være i flere knuder på en gang på grund af eksistensen af epsilon kanter.
+\newpage
+\subsubsection{}
+\begin{align}
+    (d+','?d*)?
+\end{align}
+\subsubsection{}
+Løsningen kan findes i kommatal.fsl

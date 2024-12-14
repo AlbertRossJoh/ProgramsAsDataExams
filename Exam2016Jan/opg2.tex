@@ -1,0 +1,239 @@
+\subsubsection{Udvid typen expr}
+\begin{lstlisting}[style=fsharp]
+type expr = 
+    ...
+    | Ref of expr
+    | Deref of expr
+    | UpdRef of expr * expr
+\end{lstlisting}
+\subsubsection{Udvid typen value}
+\begin{lstlisting}[style=fsharp]
+type value = 
+    | Int of int
+    | Closure of string * string * expr * value env
+    | RefVal of value ref
+\end{lstlisting}
+\newpage
+\subsubsection{Udvid eval i higherfun}
+Jeg har lavet følgende udvidelse til eval
+\begin{lstlisting}[style=fsharp]
+let rec eval (e : expr) (env : value env) : value =
+    match e with
+    ...
+    | Ref e -> 
+      eval e env |> ref |>  RefVal
+    | Deref e -> 
+      match eval e env with
+      | RefVal v -> v.Value
+      | _ -> failwith "You can only dereference reference types"
+    | UpdRef(e1, e2) ->
+      match eval e1 env with
+      | RefVal v -> 
+        let other = eval e2 env
+        v.Value <- other
+        other
+      | _ -> failwith "You you tried to update a non reference type"
+\end{lstlisting}
+beskrivelsen af koden følger:
+\begin{itemize}
+    \item Ref - Vi evaluerer først udtrykket så vi får en værdi som vi kan putte ind i vores ref celle herefter putter vi den ind i en ref celle så vi ikke længere passerer selve værdien rundt men ene reference til den og til sidst pakker vi den i vore ''RefVal'' type.
+    \item Deref - Da vi kun kan hente værdien fra en reference værdi skal vi tjekke om den rent faktisk har den rigtife type, hvis den har det returnere vi værdien, ellers fejler vi.
+    \item Updref - Samme som ''Deref'' da vi teknisk set skal ''dereference'' den så vi kan få værdien, forskellen er at vi herefter opdaterer værdien inde i ref cellen, samt returnerer den nye værdi.
+\end{itemize}
+\begin{figure}[!ht]
+    \begin{lstlisting}[style=fsharp]
+let exam2_1 = 
+  Let("x", Ref(CstI 2),
+    Let("y", Var "x",
+      Let("z", UpdRef(Var "y", CstI 42),
+          Deref(Var "x")
+      )
+    )
+  )
+    \end{lstlisting}
+    \caption{Eksempel 1}\label{fig:2016:udtryk1}
+\end{figure}
+\begin{figure}[!ht]
+    \begin{lstlisting}[style=fsharp]
+let exam2_2 = 
+  Let("x", Ref(CstB true),
+    Deref(Var "x")
+  )
+    \end{lstlisting}
+    \caption{Eksempel 2}\label{fig:2016:udtryk2}
+\end{figure}
+\begin{figure}[!ht]
+    \begin{lstlisting}[style=fsharp]
+let exam2_3 = 
+  Let("x", Ref(CstI 10),
+    Let("y", Ref(CstI 32),
+      Letfun("loop", "i",
+        If(
+          Prim("=", Deref(Var "x"), CstI 0),
+          Deref(Var "y"),
+          Let("z", 
+            UpdRef(Var "y", 
+              Prim("+",
+                Deref(Var "y"), 
+                CstI 1)
+            ),
+            Call(Var "loop", UpdRef(Var "x", Prim("-",Deref(Var "x"), CstI 1)))
+          )
+        ),
+        Call(Var "loop", Deref(Var "x"))
+      )
+    )
+  )
+    \end{lstlisting}
+    \caption{Eksempel 3}\label{fig:2016:udtryk3}
+\end{figure}
+\begin{figure}[!ht]
+    \begin{lstlisting}[style=fsharp]
+let exam2_4 = 
+  Let("x", Ref(CstI 1),
+    Let("y", Ref(CstI 1),
+      UpdRef(Var "x", Prim("+", Deref(Var "x"), Deref(Var "y")))
+    )
+  )
+    \end{lstlisting}
+    \caption{Eksempel 4}\label{fig:2016:udtryk4}
+\end{figure}
+\subsubsection{Udvid lexer og parser}
+\begin{figure}[!ht]
+    \centering
+\begin{lstlisting}[style=fsharp]
+{
+   let keyword s =
+       match s with
+       ...
+       | "ref"  -> REF
+       ...
+}
+   
+   rule Token = parse
+     ...
+     | ":="            { UPD }
+     | '!'             { DEREF }
+     ...
+\end{lstlisting}
+    \caption{Funlex opdateringer}
+    \label{fig:2016:fslex}
+\end{figure}
+\begin{figure}[!ht]
+    \centering
+\begin{lstlisting}[style=fsharp]
+%token REF UPD DEREF
+%left REF              // lowest precedence  
+%left ELSE
+%left EQ NE UPD
+%left GT LT GE LE 
+%left PLUS MINUS
+%left TIMES DIV MOD 
+%nonassoc NOT DEREF          // highest precedence
+
+Expr:
+  ...
+  | DEREF Expr     { Deref($2)      }
+  | REF Expr       { Ref($2)        }
+  | Expr UPD Expr  { UpdRef($1, $3) }
+;
+\end{lstlisting}
+    \caption{Funpar opdateringer}
+    \label{fig:2016:parser}
+\end{figure}
+I lexeren ``FunLex'' bliver der tilføjet 3 nye tokens, hhv. \Verb|REF|, \Verb|UPD| samt \Verb|DEREF|.\\
+I parseren ``FunPar'' bliver de definerede tokens tilføjet samt vurderet præcedens mæssigt. Her har jeg valgt at give \Verb|REF| den laveste præcedens da vi skal kunne definere en værdi med et hvert slags udtryk. Jeg vurderer at \Verb|DEREF| skal have højeste præcedens da man typisk binder den direkte til en variabel, og til sidst har jeg valgt at \Verb|UPD| skal have samme præcedens som \Verb|EQ|.
+\subsubsection{Omskriv eksemplerne}
+\begin{figure}[!ht]
+    \begin{lstlisting}[style=fsharp]
+let x = ref 2 in
+  let y = x in
+    let z = y := 42 in
+      !x
+    end
+  end
+end
+    \end{lstlisting}
+    \caption{Implementation af figur~\ref{fig:2016:udtryk1}}\label{fig:2016:imp1}
+\end{figure}
+\begin{figure}[!ht]
+\begin{lstlisting}[style=fsharp]
+let x = ref 2 in 
+    (x := 3) + !x 
+end
+\end{lstlisting}
+    \caption{Implementation af figur~\ref{fig:2016:udtryk2}}\label{fig:2016:imp2}
+\end{figure}
+\begin{figure}[!ht]
+\begin{lstlisting}[style=fsharp]
+let x = ref 10 in 
+  let y = ref 32 in
+    let loop i =  
+        if !x = 0 then !y
+        else 
+          let z = y := !y+1 in
+            loop (x:=!x-1)
+          end
+      in loop (!x)
+    end
+  end
+end
+\end{lstlisting}
+    \caption{Implementation af figur~\ref{fig:2016:udtryk3}}\label{fig:2016:imp2}
+\end{figure}
+\begin{figure}[!ht]
+\begin{lstlisting}[style=fsharp]
+let x = ref 1 in 
+  let y = ref 1 in
+    x := !x+!y
+  end
+end
+\end{lstlisting}
+    \caption{Implementation af figur~\ref{fig:2016:udtryk4}}\label{fig:2016:imp2}
+\end{figure}
+\newpage
+\begin{landscape}
+    
+\subsubsection{Lav typeinferens for udtryk}
+\begin{figure}[!ht]
+    \centering
+\begin{mathpar}
+        \inferrule*[left=$t_6$]{ 
+            \inferrule*[left=$ref$]{ 
+                \rho\vdash 2 : \vb{int}
+            }{
+                \rho\vdash\vb{ref 2} : \vb{int ref}
+            }\\
+            \inferrule*[right=$t_4$]{ 
+                \inferrule*[left=$\left(\vb{:=}\right)$]{ 
+                    \inferrule*[left=$t_3$]{
+                        \rho\left(x\right)=\vb{int ref}
+                    }{
+                        \rho\vdash x :\vb{int ref}
+                    }
+                    \inferrule*[right=$t_1$]{ }{
+                        \rho\vdash3:\vb{int}
+                    }
+                }{
+                    \rho\vdash\vb{x := 3}:\vb{int}
+                }
+                \inferrule*[right=$\left(!\right)$]{ 
+                    \inferrule*[right=$t_3$]{
+                        \rho\left(x\right)=\vb{int ref}
+                    }{
+                        \rho\vdash x :\vb{int ref}
+                    }
+                }{
+                    \rho\vdash\vb{!x}:\vb{int}
+                }
+            }{
+                \rho\left[x\mapsto\vb{int ref}\right]\vdash\vb{(x := 3) + !x}:\vb{int}
+            }
+        }{
+            \rho\vdash\vb{let x = ref 2 in (x := 3) + !x end}:\vb{int}
+        }
+\end{mathpar}   
+    \caption{Typeinferens af udtrykket \Verb|let x = ref 2 in (x := 3) + !x end|}
+    \label{fig:2016:typeinference}
+\end{figure}
+\end{landscape}

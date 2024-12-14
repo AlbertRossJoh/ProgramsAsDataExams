@@ -9,3 +9,4 @@ bin/
 obj/
 *.pyg
 examtemplate.pdf
+*.synctex(busy)
