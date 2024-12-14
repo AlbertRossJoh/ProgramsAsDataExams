@@ -18,6 +18,56 @@
     morestring=[b]",
     stringstyle=\color{redstrings}
     }
-
-\lstset{language=fsharp}
+\lstdefinelanguage{ccode}
+  {morekeywords={for, if, switch, case, int, word, break, default},
+    keywordstyle=\color{bluekeywords},
+    sensitive=false,
+    morecomment=[l][\color{greencomments}]{///},
+    morecomment=[l][\color{greencomments}]{//},
+    morecomment=[s][\color{greencomments}]{{/*/}},
+    morestring=[b]",
+    stringstyle=\color{redstrings}
+    }
+\lstnewenvironment{FSharp}[1][]
+    {\lstset{language=FSharp}\lstset{escapeinside={(*@}{@*)},
+     numbers=left,numberstyle=\normalsize,stepnumber=1,numbersep=5pt,
+     breaklines=true,
+     %firstnumber=last,
+         %frame=tblr,
+         framesep=5pt,
+         basicstyle=\normalsize\ttfamily,
+         showstringspaces=false,
+         keywordstyle=\itshape\color{blue},
+        %identifierstyle=\ttfamily,
+         stringstyle=\color{maroon},
+      commentstyle=\color{black},
+      rulecolor=\color{black},
+      xleftmargin=0pt,
+      xrightmargin=0pt,
+      aboveskip=\medskipamount,
+      belowskip=\medskipamount,
+             backgroundcolor=\color{white}, #1
+  }}
+  {}
+\lstnewenvironment{ccode}[1][]
+    {\lstset{language=ccode}\lstset{escapeinside={(*@}{@*)},
+     numbers=left,numberstyle=\normalsize,stepnumber=1,numbersep=5pt,
+     breaklines=true,
+     %firstnumber=last,
+         %frame=tblr,
+         framesep=5pt,
+         basicstyle=\normalsize\ttfamily,
+         showstringspaces=false,
+         keywordstyle=\itshape\color{blue},
+        %identifierstyle=\ttfamily,
+         stringstyle=\color{maroon},
+      commentstyle=\color{black},
+      rulecolor=\color{black},
+      xleftmargin=0pt,
+      xrightmargin=0pt,
+      aboveskip=\medskipamount,
+      belowskip=\medskipamount,
+             backgroundcolor=\color{white}, #1
+  }}
+  {}
 

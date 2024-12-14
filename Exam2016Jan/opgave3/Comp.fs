@@ -215,6 +215,7 @@ and cExpr (e : expr) (varEnv : varEnv) (funEnv : funEnv) : instr list =
       @ cExpr e2 varEnv funEnv
       @ [GOTO labend; Label labtrue; CSTI 1; Label labend]
     | Call(f, es) -> callfun f es varEnv funEnv
+    | CstS s -> [CSTS s]
 
 (* Generate code to access variable, dereference pointer or index array.
    The effect of the compiled code is to leave an lvalue on the stack.   *)
@@ -253,6 +254,7 @@ let cProgram (Prog topdecs) : instr list =
     let compilefun (tyOpt, f, xs, body) =
         let (labf, _, paras) = lookup funEnv f
         let (envf, fdepthf) = bindParams paras (globalVarEnv, 0)
+        printfn "%A" body
         let code = cStmt body (envf, fdepthf) funEnv
         [Label labf] @ code @ [RET (List.length paras-1)]
     let functions = 
@@ -276,6 +278,7 @@ let intsToFile (inss : int list) (fname : string) =
 
 let compileToFile program fname = 
     let instrs   = cProgram program 
+    printfn "%A" instrs
     let bytecode = code2ints instrs
     (intsToFile bytecode fname; instrs)
 

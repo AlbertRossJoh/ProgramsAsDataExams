@@ -1,22 +1,22 @@
 \subsubsection{Udvid typen expr}
-\begin{lstlisting}[style=fsharp]
+\begin{FSharp}
 type expr = 
     ...
     | Ref of expr
     | Deref of expr
     | UpdRef of expr * expr
-\end{lstlisting}
+\end{FSharp}
 \subsubsection{Udvid typen value}
-\begin{lstlisting}[style=fsharp]
+\begin{FSharp}
 type value = 
     | Int of int
     | Closure of string * string * expr * value env
     | RefVal of value ref
-\end{lstlisting}
+\end{FSharp}
 \newpage
 \subsubsection{Udvid eval i higherfun}
 Jeg har lavet følgende udvidelse til eval
-\begin{lstlisting}[style=fsharp]
+\begin{FSharp}
 let rec eval (e : expr) (env : value env) : value =
     match e with
     ...
@@ -33,7 +33,7 @@ let rec eval (e : expr) (env : value env) : value =
         v.Value <- other
         other
       | _ -> failwith "You you tried to update a non reference type"
-\end{lstlisting}
+\end{FSharp}
 beskrivelsen af koden følger:
 \begin{itemize}
     \item Ref - Vi evaluerer først udtrykket så vi får en værdi som vi kan putte ind i vores ref celle herefter putter vi den ind i en ref celle så vi ikke længere passerer selve værdien rundt men ene reference til den og til sidst pakker vi den i vore ''RefVal'' type.
@@ -41,7 +41,7 @@ beskrivelsen af koden følger:
     \item Updref - Samme som ''Deref'' da vi teknisk set skal ''dereference'' den så vi kan få værdien, forskellen er at vi herefter opdaterer værdien inde i ref cellen, samt returnerer den nye værdi.
 \end{itemize}
 \begin{figure}[!ht]
-    \begin{lstlisting}[style=fsharp]
+    \begin{FSharp}
 let exam2_1 = 
   Let("x", Ref(CstI 2),
     Let("y", Var "x",
@@ -50,20 +50,20 @@ let exam2_1 =
       )
     )
   )
-    \end{lstlisting}
+    \end{FSharp}
     \caption{Eksempel 1}\label{fig:2016:udtryk1}
 \end{figure}
 \begin{figure}[!ht]
-    \begin{lstlisting}[style=fsharp]
+    \begin{FSharp}
 let exam2_2 = 
   Let("x", Ref(CstB true),
     Deref(Var "x")
   )
-    \end{lstlisting}
+    \end{FSharp}
     \caption{Eksempel 2}\label{fig:2016:udtryk2}
 \end{figure}
 \begin{figure}[!ht]
-    \begin{lstlisting}[style=fsharp]
+    \begin{FSharp}
 let exam2_3 = 
   Let("x", Ref(CstI 10),
     Let("y", Ref(CstI 32),
@@ -84,24 +84,24 @@ let exam2_3 =
       )
     )
   )
-    \end{lstlisting}
+    \end{FSharp}
     \caption{Eksempel 3}\label{fig:2016:udtryk3}
 \end{figure}
 \begin{figure}[!ht]
-    \begin{lstlisting}[style=fsharp]
+    \begin{FSharp}
 let exam2_4 = 
   Let("x", Ref(CstI 1),
     Let("y", Ref(CstI 1),
       UpdRef(Var "x", Prim("+", Deref(Var "x"), Deref(Var "y")))
     )
   )
-    \end{lstlisting}
+    \end{FSharp}
     \caption{Eksempel 4}\label{fig:2016:udtryk4}
 \end{figure}
 \subsubsection{Udvid lexer og parser}
 \begin{figure}[!ht]
     \centering
-\begin{lstlisting}[style=fsharp]
+\begin{FSharp}
 {
    let keyword s =
        match s with
@@ -115,13 +115,13 @@ let exam2_4 =
      | ":="            { UPD }
      | '!'             { DEREF }
      ...
-\end{lstlisting}
+\end{FSharp}
     \caption{Funlex opdateringer}
     \label{fig:2016:fslex}
 \end{figure}
 \begin{figure}[!ht]
     \centering
-\begin{lstlisting}[style=fsharp]
+\begin{FSharp}
 %token REF UPD DEREF
 %left REF              // lowest precedence  
 %left ELSE
@@ -137,7 +137,7 @@ Expr:
   | REF Expr       { Ref($2)        }
   | Expr UPD Expr  { UpdRef($1, $3) }
 ;
-\end{lstlisting}
+\end{FSharp}
     \caption{Funpar opdateringer}
     \label{fig:2016:parser}
 \end{figure}
@@ -145,7 +145,7 @@ I lexeren ``FunLex'' bliver der tilføjet 3 nye tokens, hhv. \Verb|REF|, \Verb|U
 I parseren ``FunPar'' bliver de definerede tokens tilføjet samt vurderet præcedens mæssigt. Her har jeg valgt at give \Verb|REF| den laveste præcedens da vi skal kunne definere en værdi med et hvert slags udtryk. Jeg vurderer at \Verb|DEREF| skal have højeste præcedens da man typisk binder den direkte til en variabel, og til sidst har jeg valgt at \Verb|UPD| skal have samme præcedens som \Verb|EQ|.
 \subsubsection{Omskriv eksemplerne}
 \begin{figure}[!ht]
-    \begin{lstlisting}[style=fsharp]
+    \begin{FSharp}
 let x = ref 2 in
   let y = x in
     let z = y := 42 in
@@ -153,19 +153,19 @@ let x = ref 2 in
     end
   end
 end
-    \end{lstlisting}
+    \end{FSharp}
     \caption{Implementation af figur~\ref{fig:2016:udtryk1}}\label{fig:2016:imp1}
 \end{figure}
 \begin{figure}[!ht]
-\begin{lstlisting}[style=fsharp]
+\begin{FSharp}
 let x = ref 2 in 
     (x := 3) + !x 
 end
-\end{lstlisting}
+\end{FSharp}
     \caption{Implementation af figur~\ref{fig:2016:udtryk2}}\label{fig:2016:imp2}
 \end{figure}
 \begin{figure}[!ht]
-\begin{lstlisting}[style=fsharp]
+\begin{FSharp}
 let x = ref 10 in 
   let y = ref 32 in
     let loop i =  
@@ -178,17 +178,17 @@ let x = ref 10 in
     end
   end
 end
-\end{lstlisting}
+\end{FSharp}
     \caption{Implementation af figur~\ref{fig:2016:udtryk3}}\label{fig:2016:imp2}
 \end{figure}
 \begin{figure}[!ht]
-\begin{lstlisting}[style=fsharp]
+\begin{FSharp}
 let x = ref 1 in 
   let y = ref 1 in
     x := !x+!y
   end
 end
-\end{lstlisting}
+\end{FSharp}
     \caption{Implementation af figur~\ref{fig:2016:udtryk4}}\label{fig:2016:imp2}
 \end{figure}
 \newpage

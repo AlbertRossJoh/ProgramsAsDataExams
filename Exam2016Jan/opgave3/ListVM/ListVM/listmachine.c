@@ -150,6 +150,7 @@ word* readfile(char* filename);
 #endif
 
 #define CONSTAG 0
+#define STRINGTAG 1
 
 // Heap size in words
 
@@ -194,6 +195,7 @@ word *freelist;
 #define CDR 29
 #define SETCAR 30
 #define SETCDR 31
+#define CSTS 32
 
 #define STACKSIZE 1000
 
@@ -267,6 +269,20 @@ int execcode(word p[], word s[], word iargs[], int iargc, int /* boolean */ trac
     if (trace)
       printStackAndPc(s, bp, sp, p, pc);
     switch (p[pc++]) {
+    case CSTS:{
+      int lenStr = p[pc++];
+      int sizeStr = lenStr+1;
+      int sizeW = (sizeStr%4 == 0) ? sizeStr/4: (sizeStr/4)+1;
+      sizeW += 1;
+      word * strPtr = allocate(STRINGTAG, sizeW, s, sp);
+      s[++sp] = (int)strPtr;
+      strPtr[1] = lenStr;
+      char* toPtr = (char*) (strPtr+2);
+      for (int i = 0; i<lenStr; i++)
+        toPtr[i] = (char) p[pc++];
+      toPtr[lenStr] = '\0';
+      printf("The string \"%s\" has now been allocated.\n", toPtr);
+    }break;
     case CSTI:
       s[sp + 1] = Tag(p[pc++]); sp++; break;
     case ADD:

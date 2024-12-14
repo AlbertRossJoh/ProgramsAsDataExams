@@ -1,0 +1,124 @@
+\subsubsection{Vis de modifikationer du har lavet}
+\begin{figure}[!ht]
+\begin{FSharp}
+and expr =                                                         
+  | Access of access
+  | Assign of access * expr
+  | Addr of access
+  | CstI of int 
+  (*@\hl{| CstS of string} @*)
+  | CstN
+  | Prim1 of string * expr
+  | Prim2 of string * expr * expr
+  | Andalso of expr * expr
+  | Orelse of expr * expr 
+  | Call of string * expr list
+\end{FSharp}
+    \caption{Absyn.fs}\label{fig:2016:absyn}
+\end{figure}
+\begin{figure}[!ht]
+\begin{FSharp}
+AtExprNotAccess:
+    Const                               { CstI $1               }
+  (*@\hl{| CSTSTRING                           \{ CstS \$1               \}}@*)
+  | LPAR ExprNotAccess RPAR             { $2                    } 
+  | AMP Access                          { Addr $2               }
+  | NIL                                 { CstN                  }
+  | CONS LPAR Expr COMMA Expr RPAR      { Prim2("cons",$3,$5)   }
+  | CAR LPAR Expr RPAR                  { Prim1("car", $3)      }
+  | CDR LPAR Expr RPAR                  { Prim1("cdr", $3)      }
+  | SETCAR LPAR Expr COMMA Expr RPAR    { Prim2("setcar",$3,$5) }
+  | SETCDR LPAR Expr COMMA Expr RPAR    { Prim2("setcdr",$3,$5) }
+;
+\end{FSharp}
+    \caption{CPar.fsy}\label{fig:2016:cpar}
+\end{figure}
+\begin{figure}[!ht]
+\begin{FSharp}
+and cExpr (e : expr) (varEnv : varEnv) (funEnv : funEnv) : instr list = 
+    ...
+    | Orelse(e1, e2) -> 
+      let labend  = newLabel()
+      let labtrue = newLabel()
+      cExpr e1 varEnv funEnv
+      @ [IFNZRO labtrue]
+      @ cExpr e2 varEnv funEnv
+      @ [GOTO labend; Label labtrue; CSTI 1; Label labend]
+    | Call(f, es) -> callfun f es varEnv funEnv
+    (*@\hl{| CstS s -> [CSTS s]}@*)
+\end{FSharp}
+    \caption{Comp.fs}\label{fig:2016:comp}
+\end{figure}
+\begin{figure}[!ht]
+\begin{FSharp}
+type instr =
+  | Label of label
+  ...
+  (*@\hl{| CSTS of string}@*)
+
+let CODECSTI   = 0 
+...
+(*@let CODECSTS = 32;@*)
+
+let makelabenv (addr, labenv) instr = 
+    match instr with
+    | Label lab      -> (addr, (lab, addr) :: labenv)
+    ...
+    (*@\hl{| CSTS s -> (addr+1+(Seq.length s), labenv)}@*)
+
+let rec emitints getlab instr ints = 
+    match instr with
+    | Label lab      -> ints
+    ...
+    (*@\hl{| CSTS s -> CODECSTS  :: (String.length s) :: (s |> Seq.map (int) |> Seq.toList) @ ints}@*)
+\end{FSharp}
+    \caption{Machine.fs}\label{fig:2016:machine}
+\end{figure}
+\begin{figure}[!ht]
+\begin{ccode}
+int execcode(word p[], word s[], word iargs[], int iargc, int /* boolean */ trace) {
+  word bp = -999;// Base pointer, for local variable access 
+  word sp = -1;// Stack top pointer
+  word pc = 0;// Program counter: next instruction
+  for (;;) {
+    if (trace)
+      printStackAndPc(s, bp, sp, p, pc);
+    switch (p[pc++]) {
+    case CSTS:{
+      int lenStr = p[pc++];
+      int sizeStr = lenStr+1;
+      int sizeW = (sizeStr%4 == 0) ? sizeStr/4: (sizeStr/4)+1;
+      sizeW += 1;
+      word * strPtr = allocate(STRINGTAG, sizeW, s, sp);
+      s[++sp] = (int)strPtr;
+      strPtr[1] = lenStr;
+      char* toPtr = (char*) (strPtr+2);
+      for (int i = 0; i<lenStr; i++)
+        toPtr[i] = (char) p[pc++];
+      toPtr[lenStr] = '\0';
+      printf("The string "\%s" has now been allocated.\n", toPtr);
+    }break;
+    ...
+    default:
+      printf("Illegal instruction " WORD_FMT " at address " WORD_FMT "\n",
+	     p[pc - 1], pc - 1);
+      return -1;
+    }
+  }
+}
+\end{ccode}
+\caption{listmachine.c}\label{fig:2016:listmachine}
+\end{figure}
+\newpage
+\noindent I de forrige udklip kan alle ændringer jeg har lavet ses. Jeg har fulgt opskriften til punkt og prikke, ud over at jeg har lavet min egen version af explode, men som gør det præcis samme. Jeg har også lave en ændring til \Verb|makelabenv| som håndtere at placere labels i koden således at \Verb|GOTO| er understøttet, her tager jeg den nuværende addresse lægger een til for streng længden og herefter hele strengens længde til.
+\subsubsection{Vis med eksempelprogrammat at strenge kan oprettes}
+\begin{figure}
+\begin{Verbatim}
+./listmachine ../../examprog.out 
+The string "Hi there" has now been allocated.
+The string "Hi there again" has now been allocated.
+
+Used 0 cpu milli-seconds
+\end{Verbatim}
+\end{figure}
+I den abstrakte syntax bliver der først oprettet en block som indeholde main, herinde bliver der oprettet to dynamiske variable; s1 og s2; Disse bliver begge assignet til \Verb|CstS|.
