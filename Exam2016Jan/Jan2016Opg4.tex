@@ -1,0 +1,65 @@
+\subsubsection{Udvid micro-c med interval check}
+\begin{figure}[!ht]
+\begin{FSharp}
+rule Token = parse
+  ...
+  (*@\hl{| '.'             \{ DOT \}}@*)
+  ...
+  | _               { failwith "Lexer error: illegal symbol" }
+\end{FSharp}
+\caption{CLex.fsl}\label{fig:2016:opg4:clex}
+\end{figure}
+\begin{figure}[!ht]
+\begin{FSharp}
+...
+%token CHAR ELSE IF INT NULL PRINT PRINTLN RETURN VOID WHILE DOT
+...
+%right ASSIGN             /* lowest precedence */
+...
+%left EQ NE DOT
+...
+%nonassoc LBRACK          /* highest precedence  */
+...
+BoolOp:
+    GE                                  { ">="                }
+  | LE                                  { "<="                }
+  | GT                                  { ">"                 }
+  | LT                                  { "<"                 }
+  | NE                                  { "!="                }
+  | EQ                                  { "=="                }
+;
+
+ExprNotAccess:
+    AtExprNotAccess                     { $1                  }
+  ...
+  | Expr DOT BoolOp Expr DOT BoolOp Expr{ Andalso(Prim2($3, $1, $4), Prim2($6, $4, $7))}
+  ...
+  | Expr SEQOR  Expr                    { Orelse($1, $3)      }
+;
+\end{FSharp}
+\caption{CPar.fsy}\label{fig:2016:opg4:cpar}
+\end{figure}
+\newpage
+I ændringerne ovenfor kan det ses at der kun er tilføjet een ny token og det er \Verb|DOT|, dette er så vi kan understøtte i lexeren at den møder et punktum. I vores parser som kan ses i figur~\ref{fig:2016:opg4:cpar}, så er der sket lidt mere.\\\\
+Der er blevet oprettet een nye grammer, \Verb|BoolOp|. \Verb|BoolOp| er til for at matche med vores understøttede boolske operationer. Der er også blevet tilføjet en ny regel til \Verb|ExprNotAccess| som sørger for at matche den nye funktionalitet, hvilket den gør ved blot at tjekke som der er 3 expressions i streg, herefter smider den dem ind i en \Verb|Andalso|.
+ %Dette gør den ved at tjekke om vi blot har at gøre med et interval på 3 elementer eller flere hvis der er 2 elementer understøtter vi ikke operationen da de normale operatorer bør bruges her. Interval er en rekursiv grammer som kan lave en hægtet \Verb|Andalso| så vi kan tilknytte et vilkårligt antal elementer til vores interval check.
+\subsubsection{Udvid micro-c programmet med flere eksempler}
+\begin{figure}[!ht]
+\begin{ccode}
+void main(){
+    print 2 .< 3 .< 4;
+    print 3 .< 2 .== 2;
+    print 3 .> 2 .== 2;
+    print (3 .> 2 .== 2) == (3 .> 1 .== 1);
+    print (3 .> 2 .== 2) == 1;
+    // udvidelser opgave 4.2
+    print 2 .< 3 .<= 4;
+    print 2 .> 1 .>= 4;
+    print (2 .>= 2 .>= 4) .== (2 .>= 2 .>= 4) .== (2 .>= 2 .>= 4);
+    print (2 .>= 2 .>= 4) .!= (2 .<= 2 .<= 4) .== (2 .>= 2 .>= 4);
+    print (2 .>= 2 .>= 4) .!= (2 .<= 2 .<= 4) .!= (2 .>= 2 .>= 4) == (2 .>= 2 .>= 4) .!= (2 .<= 2 .<= 4) .!= (2 .>= 2 .>= 4);
+}
+\end{ccode}
+\caption{Det udvidede program}
+\end{figure}
+Her testes der flere ting både at alle operatorer er under og at de spiller sammen med sig selv samt eksiterende funktionalitet i koden. Resultaterne er præcis som forventet, dette kan verificeres ved at håndkøre resultaterne hvor man vil finde at svarene stemmer overens med det forventede resultat.
