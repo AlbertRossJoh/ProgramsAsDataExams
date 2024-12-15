@@ -1,0 +1,128 @@
+Betragt dette regulære udtryk over alfabetet $\{e, f, d, x\}$:
+\begin{align*}
+    e(fd*)*x
+\end{align*}
+Ved antagelse, at
+\begin{align*}
+    e & \text{ svarer til } & enter\:bar\\
+    f & \text{ svarer til } & fetch\:beer\\
+    d & \text{ svarer til } & drink\:beer\\
+    x & \text{ svarer til } & exit\:bar
+\end{align*}
+så beskriver det regulære udtryk strenge, der symboliserer scenarier for en gæst i fredagsbaren.
+\subsubsection{Giv nogle eksempler på strenge der genkendes af det regulære udtryk samt en uformel beskrivelse}
+Nogle eksempler på strenge der genkendes af det regulære udtryk er.
+\begin{itemize}
+    \item ex
+    \item efx
+    \item efdddddddddx
+    \item efffffffx
+    \item efdfdfdx
+\end{itemize}
+Sproget beskriver en mængde handlinger man kan tage i fredagsbaren, som har disse krav.
+\begin{itemize}
+    \item Man skal gå ind og ud
+    \item Det er ikke påkrævet at drikke hvis man har hentet en øl
+\end{itemize}
+\subsubsection{Lav udtrykket om til en NFA}
+Vi kan starte med at dele udtrykket op i mindre dele og repræsentere dem via en graf visning.\\
+\begin{figure}[!ht]
+    \centering
+    \begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
+       \node[state, initial] (q_1)   {$1$}; 
+        \node[state,accepting] (q_2) [ right =of q_1] {$2$};
+              
+        \path[->] 
+        (q_1) edge  node {$e$} (q_2)
+        ;
+    \end{tikzpicture}
+    \caption{$e$}\label{fig:2015:examfignfae}
+\end{figure}
+\newpage
+\begin{figure}[!ht]
+    \centering
+    \begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
+       \node[state, initial,accepting] (q_1)   {$1$}; 
+        \node[state,accepting] (q_2) [right  =of q_1] {$2$};
+              
+        \path[->] 
+        (q_1) edge [bend left] node{$f$} (q_2)
+        (q_2) edge [loop] node{$d$} (q_2)
+        (q_2) edge [loop] node{$d$} (q_2)
+        (q_2) edge [bend left] node{$\epsilon$} (q_1)
+        ;
+
+    \end{tikzpicture}
+    \caption{$(fd*)*$}\label{fig:2015:examfignfafd}
+\end{figure}
+\begin{figure}[!ht]
+    \centering
+    \begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
+       \node[state, initial] (q_1)   {$1$}; 
+        \node[state,accepting] (q_2) [ right =of q_1] {$2$};
+              
+        \path[->] 
+        (q_1) edge  node {$x$} (q_2)
+        ;
+    \end{tikzpicture}
+    \caption{$s$}\label{fig:2015:examfignfax}
+\end{figure}
+Hvis vi sætter figur~\ref{fig:2015:examfignfae}~\ref{fig:2015:examfignfafd}~\ref{fig:2016:examfignfax} sammen så får vi følgende graf.
+\begin{figure}[!ht]
+    \centering
+    \begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
+        \node[state, initial] (q_1)   {$1$}; 
+        \node[state] (q_2) [right=of q_1] {$2$};
+        \node[state] (q_3) [right=of q_2] {$3$};
+        \node[state] (q_4) [right=of q_3] {$4$};
+        \node[state,accepting] (q_5) [ right =of q_4] {$5$};
+              
+        \path[->] 
+        (q_1) edge node{$e$}(q_2)
+        (q_3) edge [bend left] node{$\epsilon$}(q_2)
+        (q_2) edge [bend left] node{$f$}(q_3)
+        (q_3) edge [loop] node{$d$}(q_3)
+        (q_3) edge node{$\epsilon$}(q_4)
+        (q_2) edge [bend right, in=270, out=270] node{$\epsilon$}(q_4)
+        (q_4) edge node{$x$}(q_5)
+        ;
+
+    \end{tikzpicture}
+    \caption{The labeled NFA, representing $e(fd*)*x$}\label{fig:2015:examfignfa}
+\end{figure}
+\newpage
+\subsubsection{Lav udtrykket om til en DFA}
+For at konstruerer en DFA fra NFA'en skal vi inddele automaten i subsæt og se hvilke sæt referer til andre sæt.
+\begin{figure}[!ht]
+    \centering
+    \begin{tabular}{c|ccccc}
+            &$e$&$f$&$d$&$x$&NFA state\\\hline
+        $S_1$&$\{2,4\}^{S_2}$&$\{\}$&$\{\}$&$\{\}$&\{1\}\\
+        $S_2$&$\{\}$&$\{2,3,4\}^{S_3}$&$\{\}$&$\{5\}^{S_4}$&\{2,4\}\\
+        $S_3$&$\{\}$&$\{\}^{S_3}$&$\{\}^{S_3}$&$\{5\}^{S_4}$&\{2,3,4\}\\
+        $S_4$&$\{\}$&$\{\}$&$\{\}$&$\{\}$&\{5\}
+    \end{tabular}
+\end{figure}
+Nu kan vi konstruerer DFA'en.
+\begin{figure}[!ht]
+    \centering
+    \begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
+        \node[state, initial] (q_1)   {$S_1$}; 
+        \node[state] (q_2) [right=of q_1] {$S_2$};
+        \node[state] (q_3) [ right =of q_2] {$S_3$};
+        \node[state,accepting] (q_4) [ right =of q_3] {$S_4$};
+              
+        \path[->] 
+            (q_1) edge node{$e$}(q_2)
+            (q_2) edge  node{$f$}(q_3)
+            (q_2) edge [bend right] node[below]{$x$}(q_4)
+            (q_3) edge node{$x$}(q_4)
+            (q_3) edge [loop] node[above]{$f,d$}(q_3)
+        ;
+    \end{tikzpicture}
+    \caption{The labeled DFA, representing $k(l|v|h|)+s$}\label{fig:2016:examfigdfa}
+\end{figure}
+\subsubsection{Beskriv mængden af strenge ved et regulært udtryk}
+\begin{align*}
+    f(s|d)*
+\end{align*}
