@@ -1,0 +1,5 @@
+L1: od1 := TRUE;
+    SLEEP 500;
+    od1 := FALSE;
+    SLEEP 500;
+    GOTO L1;

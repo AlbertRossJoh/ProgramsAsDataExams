@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FsYacc Include="SimpPar.fsy">
+      <OtherFlags>--module SimpPar</OtherFlags>
+    </FsYacc>
+    <FsLex Include="SimpLex.fsl">
+      <OtherFlags>--module SimpLex --unicode</OtherFlags>
+    </FsLex>
+
+    <Compile Include="Util.fs" />
+    <Compile Include="Absyn.fs" />
+    <Compile Include="TypeInference.fs" />
+    <Compile Include="SimpPar.fs" />
+    <Compile Include="SimpLex.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <PackageReference Include="FsLexYacc" Version="11.3.0" />
+    <PackageReference Include="FsLexYacc.Runtime" Version="11.3.0" />
+  </ItemGroup>
+
+</Project>

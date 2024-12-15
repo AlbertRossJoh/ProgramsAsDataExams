@@ -7,6 +7,7 @@
 *.out
 bin/
 obj/
+.idea/
 *.pyg
 examtemplate.pdf
 *.synctex(busy)

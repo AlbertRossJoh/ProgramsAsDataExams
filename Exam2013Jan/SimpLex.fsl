@@ -1,0 +1,53 @@
+{
+ (* 
+    SimpLex a lexer specification for SIMPLC
+    Albert Ross Johannessen
+    2024
+  *)
+
+
+open (*Microsoft.*) FSharp.Text.Lexing
+open Util
+open SimpPar
+
+let lexemeAsString lexbuf = 
+    LexBuffer<char>.LexemeString lexbuf
+
+(* Distinguish keywords from identifiers: *)
+
+let keyword s =
+    match s with
+    | "GOTO"  -> GOTO
+    | "IF"  -> IF
+    | "SLEEP"  -> SLEEP
+    | "FALSE" -> FALSE
+    | "TRUE" -> TRUE
+    | "NOT" -> NOT
+    | "AND" -> AND
+    | "OR" -> OR
+    | _       -> NAME s
+}
+
+rule Token = parse
+  | [' ' '\t' '\r'] { Token lexbuf }
+  | '\n'            { lexbuf.EndPos <- lexbuf.EndPos.NextLine; Token lexbuf }
+  | ['0'-'9']+      { CSTINT (System.Int32.Parse (lexemeAsString lexbuf)) }
+  | "ia"['1'-'2']  {INANA (lexemeAsString lexbuf |> parseThirdInt)}
+  | "oa"['1'-'2']  {OUTANA(lexemeAsString lexbuf |> parseThirdInt)}
+  | "id"['1'-'5']  {INDIGI(lexemeAsString lexbuf |> parseThirdInt)}
+  | "od"['1'-'8']  {OUTDIGI(lexemeAsString lexbuf |> parseThirdInt)}
+  | "cd"['1'-'2']  {INCOUNT(lexemeAsString lexbuf |> parseThirdInt)}
+  | ['a'-'z''A'-'Z']['a'-'z''A'-'Z''0'-'9']*{ keyword (lexemeAsString lexbuf) }
+  | ':'             { COLON }
+  | ';'             { SEMI }
+  | ":="            { COLONEQUAL }
+  | '='             { EQ }
+  | "<>"            { NE }
+  | '<'             { LT }
+  | '+'             { PLUS }                     
+  | '-'             { MINUS }                     
+  | '('             { LPAR }
+  | ')'             { RPAR }
+  | eof             { EOF }
+  | _               { failwith ("Lexer error: illegal symbol "+(lexemeAsString lexbuf)) }
+
