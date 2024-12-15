@@ -37,4 +37,15 @@ let examEx43 =
 
 printfn $"%A{examEx43 |> run}"
 printfn "\n"
+let examEx44 = 
+    Every(
+        Write(
+            Random(1, 10, 3)
+        )
+    )
+
+printfn $"%A{examEx44 |> run}"
+printfn "\n"
+
+
 

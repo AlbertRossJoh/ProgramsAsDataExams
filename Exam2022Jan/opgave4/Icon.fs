@@ -35,6 +35,7 @@ type expr =
   | Or  of expr * expr
   | Seq of expr * expr
   | Every of expr 
+  | Random of int * int * int
   | Fail;;
 
 (* Runtime values and runtime continuations *)
@@ -99,6 +100,17 @@ let rec eval (e : expr) (cont : cont) (econt : econt) =
       eval e (fun _ -> fun econt1 -> econt1 ())
              (fun () -> cont (Int 0) econt)
     | Fail -> econt ()
+    | Random(min,max, num) -> 
+      if num <= 0 then failwith $"Invalid value for num in random %d{num}"
+      else if min > max then failwith $"Min cannot be larger than max in random"
+      else
+        let rec loop i = 
+          if i < num then 
+              cont (Int (System.Random.Shared.Next(min, max+1))) (fun () -> loop (i+1))
+          else 
+              econt ()
+        loop 0
+
 
 let run e = eval e (fun v -> fun _ -> v) (fun () -> (printfn "Failed"; Int 0));
 
