@@ -417,3 +417,144 @@ Label "L5"; // else
 Label "L6"; //
     INCSP 0; RET 0 // endeligt return så fac kan hoppe herned
 ```
+
+# Opgave 3
+
+## Udvid lexer, parser og absyn
+
+Lexer er kun udvidet med eet nyt nøgleord, da resten af tokens er taget
+forbehold for.
+
+```fsharp
+let keyword s =
+    match s with
+    ...
+    | "within"  -> WITHIN
+    | _         -> NAME s
+```
+
+Parser er udvidet med en ny expression, samt den nye `within` token der har
+samme præcedens som < og >, dette er så den binder hårdere end lig eller print,
+men ikke lige så hårdt som plus eller gange.
+
+```fsharp
+%token WITHIN
+
+%right ASSIGN             /* lowest precedence */
+%nonassoc PRINT
+%left SEQOR
+%left SEQAND
+%left EQ NE 
+%left GT LT GE LE WITHIN
+%left PLUS MINUS
+%left TIMES DIV MOD 
+%nonassoc NOT AMP 
+%nonassoc LBRACK          /* highest precedence  */
+
+ExprNotAccess:
+    AtExprNotAccess                     { $1                  }
+  ...
+  | Expr WITHIN LBRACK Expr COMMA Expr RBRACK {Within($1, $4, $6)}
+;
+```
+
+Til sidst er den abstrakte syntax blevet udvidet med en within expression. Denne
+tager 3 argumenter, som alle er expressions, da vi skal kunne tillade
+`x*2 within [y/3, z-1]`.
+
+```fsharp
+and expr =
+  ...
+  | Within of expr * expr * expr
+```
+
+Jeg får følgende syntax træ når jeg evaluerer programmet.
+
+```
+opgave3 git:(main)  dotnet run within.c
+Prog
+  [Fundec
+     (None, "main", [],
+      Block
+        [Stmt
+           (Expr
+              (Prim1
+                 ("printi",
+                  Within
+                    (CstI 0, Prim1 ("printi", CstI 1), Prim1 ("printi", CstI 2)))));
+         Stmt
+           (Expr
+              (Prim1
+                 ("printi",
+                  Within
+                    (CstI 3, Prim1 ("printi", CstI 1), Prim1 ("printi", CstI 2)))));
+         Stmt
+           (Expr
+              (Prim1
+                 ("printi",
+                  Prim1
+                    ("printi",
+                     Within
+                       (CstI 42, Prim1 ("printi", CstI 40),
+                        Prim1 ("printi", CstI 44))))));
+         Stmt
+           (Expr
+              (Prim1
+                 ("printi",
+                  Within
+                    (Prim1 ("printi", CstI 42), Prim1 ("printi", CstI 40),
+                     Prim1 ("printi", CstI 44)))))])]
+```
+
+## Oversætter skema for within
+
+```
+E[e within [e1, e2]] =
+    E[e]
+    E[e1]
+    LT
+    NOT
+    E[e2]
+    E[e]
+    LT
+    NOT
+    ADD
+    CSTI 2
+    EQ
+```
+
+Vi tjekker først om _e1_ er mindre eller lig _e_, herefter tjekker vi om _e_ er
+mindre eller lig _e2_ herefter summerer vi op hvis resultatet er lig 2 så ved vi
+at begge er sande, eller ved vi et af udtrykkene er falske.
+
+## Implementer skemaet i Comp
+
+Det er implementeret som i oversætter skemaet, _le_, _ge_ og _res_ afhænger af
+det samme miljø og kan derfor evalueres lige fra starten af, så sparer vi også
+en evaluering af _res_.
+
+```fsharp
+and cExpr (e : expr) (varEnv : varEnv) (funEnv : funEnv) : instr list = 
+    match e with
+    ...
+    | Within(e, e1, e2) -> 
+      // Evaluate all expression
+      let le = cExpr e1 varEnv funEnv
+      let ge = cExpr e2 varEnv funEnv
+      let res = cExpr e varEnv funEnv
+      res
+      @ le
+      @ [LT; NOT] // if res is less than le then <= is not true
+      @ ge
+      @ res
+      @ [LT; NOT; ADD; CSTI 2; EQ] // the same for ge, we add the results, which should be 2 if true
+```
+
+Evaluering af det genererede bytekode, svaret er som forventet og stemmer
+overens med opgaven.
+
+```
+java Machine within.out
+1 2 0 1 2 0 40 44 1 1 42 40 44 42 1 
+Ran 0.011 seconds
+```
