@@ -1,0 +1,46 @@
+{
+ (* 
+    SimpLex a lexer specification for SIMPLC
+    Albert Ross Johannessen
+    2024
+  *)
+
+module Lex
+open (*Microsoft.*) FSharp.Text.Lexing
+open Util
+open Par
+
+let lexemeAsString lexbuf = 
+    LexBuffer<char>.LexemeString lexbuf
+
+(* Distinguish keywords from identifiers: *)
+
+let keyword s =
+    match s with
+    | "STATES"  -> STATES
+    | "TRANSITIONS"  -> TRANSITIONS
+    | "PAYMENTS"  -> PAYMENTS
+    | "WHILE"  -> WHILE
+    | "UPON"  -> UPON
+    | "RECEIVE"  -> RECEIVE
+    | "PAY"  -> PAY
+    | "YEAR"  -> YEAR
+    | "MONTH"  -> MONTH
+    | "PER"  -> PER
+    | _       -> NAME s
+
+}
+
+rule Token = parse
+  | [' ' '\t' '\r'] { Token lexbuf }
+  | '\n'            { lexbuf.EndPos <- lexbuf.EndPos.NextLine; Token lexbuf }
+  | (['0'-'9']|['0'-'9']['0'-'9']|['0'-'9']['0'-'9']['0'-'9'])(_['0'-'9']['0'-'9']['0'-'9'])*      { 
+      CSTINT (System.Int32.Parse (lexemeAsString lexbuf |> filterUnderscore)) 
+      }
+  | ['a'-'z''A'-'Z']['a'-'z''A'-'Z''0'-'9']*{ keyword (lexemeAsString lexbuf) }
+  | ':'             { COLON }
+  | ','             { COMMA }
+  | "-->"            { TO }
+  | eof             { EOF }
+  | _               { failwith ("Lexer error: illegal symbol "+(lexemeAsString lexbuf)) }
+

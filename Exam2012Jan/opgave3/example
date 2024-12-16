@@ -1,0 +1,11 @@
+STATES
+    Active, Retired, Dead
+TRANSITIONS
+    Retirement: Active --> Retired
+    DieWhileActive: Active --> Dead
+    DieWhileRetired: Retired --> Dead
+PAYMENTS
+    WHILE Active PAY 55_000 PER YEAR
+    WHILE Retired RECEIVE 20_000 PER MONTH
+    UPON Retirement RECEIVE 400_000
+    UPON DieWhileActive RECEIVE 2_000_000
