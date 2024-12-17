@@ -18,6 +18,7 @@ type expr<'a> =
   | Let of valdec<'a> list * expr<'a>
   | Raise of expr<'a> * 'a option
   | TryWith of expr<'a> * exnvar * expr<'a>
+  | Pair of expr<'a> * expr<'a> * 'a option
 and valdec<'a> =
   | Fundecs of (string * string * expr<'a>) list  (* Top level mutual recursive function declarations *)
   | Valdec of string * expr<'a>
@@ -97,6 +98,7 @@ let rec getOptExpr e : 'a Option =
   | Raise(e,aOpt) -> aOpt
   | TryWith(e1,exn,e2) -> getOptExpr e1 (* e1 and e3 has same type *)
   | Let(_,letBody) -> getOptExpr letBody
+  | Pair(_, _, aOpt) -> aOpt
 
 let tailcalls p : program<'a> =
   let rec tc' tPos e =
@@ -116,7 +118,8 @@ let tailcalls p : program<'a> =
     | Let(valdecs,letBody) -> Let(List.map (tcValdec' false) valdecs,tc' tPos letBody)
     | Raise(e1,aOpt) -> e
       (* an exception handler must be popped after e1 *)    
-    | TryWith(e1,exn,e2) -> TryWith(tc' false e1, exn, tc' tPos e2) 
+    | TryWith(e1,exn,e2) -> TryWith(tc' false e1, exn, tc' tPos e2)
+    | Pair(a, b, opt) -> Pair(tc' tPos a, tc' tPos b, opt)
   and tcValdec' tPos = function
     | Valdec(x,eRhs) -> Valdec(x,tc' tPos eRhs)
     | Fundecs(fs) -> Fundecs(List.map (fun (f,x,e) -> (f,x,tc' true e)) fs)
@@ -148,7 +151,8 @@ let rec freevars e : string Set =
   | Fun(x,fBody,_) -> freevars fBody - (set [x])
   | Call(eFun, eArg,_,_) -> freevars eFun + (freevars eArg)
   | Raise(e1,_) -> freevars e1
-  | TryWith(e1,ExnVar exn,e2) -> (freevars e1) + (set [exn]) + (freevars e2) (* exn is also free *)
+  | TryWith(e1,ExnVar exn,e2) -> (freevars e1) + (set [exn]) + (freevars e2)
+  | Pair(_, _, _) -> failwith "Not Implemented" (* exn is also free *)
 and freevarsValdec (fvs, bvs) = function (* bvs are bound variables, either globally or in locally. *)
     Valdec(x,eRhs) -> (fvs + ((freevars eRhs) - set [x]),bvs + set [x]) 
   | Exn (ExnVar exn,aOpt) -> (fvs,bvs + set [exn])
@@ -200,6 +204,7 @@ let alphaConv p : program<'a> =
       | Call(e1, e2, opt1, opt2) -> Call(aExpr env e1, aExpr env e2, opt1, opt2)
       | Raise(e1, opt) -> Raise(aExpr env e1, opt)
       | TryWith(e1, exn, e2) -> TryWith(aExpr env e1, exn, aExpr env e2)
+      | Pair(a, b, opt) -> Pair(aExpr env a, aExpr env b, opt)
   and aValdec' env = function
     | Valdec(x, eRhs)-> 
       let newVar, newEnv = genNewEnv env x
